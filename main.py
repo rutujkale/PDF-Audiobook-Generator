@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, messagebox
+from src.pdf_reader import PDFReader
 
 class PDFAudioBookApp:
 
@@ -137,16 +138,31 @@ class PDFAudioBookApp:
 
             return
 
-        self.progress["value"] = 100
+        try:
 
-        self.status.config(
-            text="Audiobook Generated Successfully (Coming Soon)"
-        )
+            self.status.config(text="Reading PDF...")
 
-        messagebox.showinfo(
-            "Done",
-            "PDF Loaded Successfully.\n\nAudio generation will be added in the next step."
-        )
+            self.root.update()
+
+            text = PDFReader.extract_text(self.pdf_path)
+
+            self.progress["value"] = 40
+
+            self.status.config(
+                text=f"Successfully extracted {len(text)} characters."
+            )
+
+            messagebox.showinfo(
+                "Success",
+                f"PDF Loaded Successfully!\n\nCharacters extracted:\n{len(text)}"
+            )
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Error",
+                str(e)
+            )
 
 
 def main():
