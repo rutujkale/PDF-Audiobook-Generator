@@ -9,21 +9,59 @@ class TextToSpeech:
 
         self.voice = "en-US-GuyNeural"
 
-    async def generate(self, text, output_file):
+        self.chunk_size = 3500
+
+    def split_text(self, text):
+
+        chunks = []
+
+        while len(text) > self.chunk_size:
+
+            split_index = text.rfind(" ", 0, self.chunk_size)
+
+            if split_index == -1:
+
+                split_index = self.chunk_size
+
+            chunks.append(text[:split_index])
+
+            text = text[split_index:]
+
+        chunks.append(text)
+
+        return chunks
+
+    async def generate_chunk(self, text, filename):
 
         communicate = edge_tts.Communicate(
             text=text,
             voice=self.voice
         )
 
-        await communicate.save(output_file)
+        await communicate.save(filename)
 
-    def create_audio(self, text, output_file):
+    def create_audio(self, text, output_folder="audio"):
 
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        os.makedirs(output_folder, exist_ok=True)
 
-        asyncio.run(
-            self.generate(text, output_file)
-        )
+        chunks = self.split_text(text)
 
-        return output_file
+        audio_files = []
+
+        for i, chunk in enumerate(chunks):
+
+            filename = os.path.join(
+                output_folder,
+                f"part_{i+1}.mp3"
+            )
+
+            asyncio.run(
+                self.generate_chunk(
+                    chunk,
+                    filename
+                )
+            )
+
+            audio_files.append(filename)
+
+        return audio_files

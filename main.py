@@ -155,11 +155,17 @@ class PDFAudioBookApp:
 
             tts = TextToSpeech()
 
-            output_file = "audio/audiobook.mp3"
+            audio_files = tts.create_audio(text)
 
-            tts.create_audio(
-                text=text,
-                output_file=output_file
+            message = "Generated Files:\n\n"
+
+            for file in audio_files:
+
+                message += file + "\n"
+
+            messagebox.showinfo(
+                "Success",
+                message
             )
 
             self.progress["value"] = 100
