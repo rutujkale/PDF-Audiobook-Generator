@@ -141,42 +141,29 @@ class PDFAudioBookApp:
 
         try:
 
-            self.progress["value"] = 0
+            self.progress["value"] = 10
             self.status.config(text="Reading PDF...")
             self.root.update()
 
             text = PDFReader.extract_text(self.pdf_path)
 
-            self.progress["value"] = 35
-            self.root.update()
-
-            self.status.config(text="Generating audiobook...")
+            self.progress["value"] = 40
+            self.status.config(text="Generating Audiobook...")
             self.root.update()
 
             tts = TextToSpeech()
 
-            audio_files = tts.create_audio(text)
-
-            message = "Generated Files:\n\n"
-
-            for file in audio_files:
-
-                message += file + "\n"
-
-            messagebox.showinfo(
-                "Success",
-                message
-            )
+            output = tts.create_audio(text)
 
             self.progress["value"] = 100
 
             self.status.config(
-                text="Audiobook Generated Successfully!"
+                text="Completed!"
             )
 
             messagebox.showinfo(
                 "Success",
-                f"Audiobook saved as:\n\n{output_file}"
+                f"Audiobook created successfully.\n\n{output}"
             )
 
         except Exception as e:
@@ -186,6 +173,9 @@ class PDFAudioBookApp:
                 str(e)
             )
 
+            self.progress["value"] = 0
+
+            
 def main():
 
     root = tk.Tk()

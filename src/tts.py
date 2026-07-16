@@ -2,6 +2,8 @@ import asyncio
 import edge_tts
 import os
 
+from pydub import AudioSegment
+
 
 class TextToSpeech:
 
@@ -46,7 +48,7 @@ class TextToSpeech:
 
         chunks = self.split_text(text)
 
-        audio_files = []
+        files = []
 
         for i, chunk in enumerate(chunks):
 
@@ -62,6 +64,26 @@ class TextToSpeech:
                 )
             )
 
-            audio_files.append(filename)
+            files.append(filename)
 
-        return audio_files
+        final_audio = AudioSegment.empty()
+
+        for file in files:
+
+            final_audio += AudioSegment.from_mp3(file)
+
+        final_path = os.path.join(
+            output_folder,
+            "audiobook.mp3"
+        )
+
+        final_audio.export(
+            final_path,
+            format="mp3"
+        )
+
+        for file in files:
+
+            os.remove(file)
+
+        return final_path
