@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import filedialog, messagebox
 from src.pdf_reader import PDFReader
 from src.tts import TextToSpeech
+import threading
 
 class PDFAudioBookApp:
 
@@ -65,7 +66,7 @@ class PDFAudioBookApp:
 
         self.progress.pack(pady=25)
 
-        generate_btn = tk.Button(
+        self.generate_btn = tk.Button(
             self.root,
             text="Generate Audiobook",
             width=25,
@@ -73,7 +74,7 @@ class PDFAudioBookApp:
             command=self.generate_audio
         )
 
-        generate_btn.pack(pady=15)
+        self.generate_btn.pack(pady=15)
 
         player_frame = tk.Frame(self.root)
 
@@ -128,6 +129,22 @@ class PDFAudioBookApp:
 
             self.status.config(text="PDF Selected")
 
+    def update_status(self, text=None, progress=None):
+        """
+        Safely update Tkinter widgets from a background thread.
+        """
+
+        def update():
+
+            if text is not None:
+                self.status.config(text=text)
+
+            if progress is not None:
+                self.progress["value"] = progress
+
+        self.root.after(0, update)
+
+
     def generate_audio(self):
 
         if self.pdf_path == "":
@@ -139,43 +156,84 @@ class PDFAudioBookApp:
 
             return
 
+        self.generate_btn.config(state="disabled")
+
+        thread = threading.Thread(
+            target=self.generate_audio_thread,
+            daemon=True
+        )
+
+        thread.start()
+
+
+    def generate_audio_thread(self):
+
         try:
 
-            self.progress["value"] = 10
-            self.status.config(text="Reading PDF...")
-            self.root.update()
+            # Reading PDF
+            self.update_status(
+                text="Reading PDF...",
+                progress=10
+            )
 
-            text = PDFReader.extract_text(self.pdf_path)
+            text = PDFReader.extract_text(
+                self.pdf_path
+            )
 
-            self.progress["value"] = 40
-            self.status.config(text="Generating Audiobook...")
-            self.root.update()
+            # Generating Audio
+            self.update_status(
+                text="Generating Audiobook...",
+                progress=40
+            )
 
             tts = TextToSpeech()
 
             output = tts.create_audio(text)
 
-            self.progress["value"] = 100
-
-            self.status.config(
-                text="Completed!"
+            # Finished
+            self.update_status(
+                text="Completed!",
+                progress=100
             )
 
-            messagebox.showinfo(
-                "Success",
-                f"Audiobook created successfully.\n\n{output}"
+            self.root.after(
+                0,
+                lambda: self.generate_btn.config(
+                    state="normal"
+                )
+            )
+
+            self.root.after(
+                0,
+                lambda: messagebox.showinfo(
+                    "Success",
+                    f"Audiobook saved successfully!\n\n{output}"
+                )
             )
 
         except Exception as e:
 
-            messagebox.showerror(
-                "Error",
-                str(e)
+            self.update_status(
+                text="Failed!",
+                progress=0
             )
 
-            self.progress["value"] = 0
+            self.root.after(
+                0,
+                lambda: self.generate_btn.config(
+                    state="normal"
+                )
+            )
 
-            
+            self.root.after(
+                0,
+                lambda: messagebox.showerror(
+                    "Error",
+                    str(e)
+                )
+            )
+
+
 def main():
 
     root = tk.Tk()
