@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog, messagebox
 from src.pdf_reader import PDFReader
+from src.tts import TextToSpeech
 
 class PDFAudioBookApp:
 
@@ -140,21 +141,36 @@ class PDFAudioBookApp:
 
         try:
 
+            self.progress["value"] = 0
             self.status.config(text="Reading PDF...")
-
             self.root.update()
 
             text = PDFReader.extract_text(self.pdf_path)
 
-            self.progress["value"] = 40
+            self.progress["value"] = 35
+            self.root.update()
+
+            self.status.config(text="Generating audiobook...")
+            self.root.update()
+
+            tts = TextToSpeech()
+
+            output_file = "audio/audiobook.mp3"
+
+            tts.create_audio(
+                text=text,
+                output_file=output_file
+            )
+
+            self.progress["value"] = 100
 
             self.status.config(
-                text=f"Successfully extracted {len(text)} characters."
+                text="Audiobook Generated Successfully!"
             )
 
             messagebox.showinfo(
                 "Success",
-                f"PDF Loaded Successfully!\n\nCharacters extracted:\n{len(text)}"
+                f"Audiobook saved as:\n\n{output_file}"
             )
 
         except Exception as e:
@@ -163,7 +179,6 @@ class PDFAudioBookApp:
                 "Error",
                 str(e)
             )
-
 
 def main():
 
