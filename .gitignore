@@ -17,3 +17,7 @@ output/
 
 # Logs
 *.log
+logs/
+
+# Persisted user settings
+config/
