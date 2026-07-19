@@ -7,10 +7,12 @@ edge-tts==7.2.8
 frozenlist==1.8.0
 idna==3.18
 multidict==6.7.1
+pillow==12.3.0
 propcache==0.5.2
 pydub==0.25.1
 pygame==2.6.1
 pymupdf==1.28.0
 tabulate==0.10.0
+ttkbootstrap==2.0.0
 typing_extensions==4.16.0
 yarl==1.24.2

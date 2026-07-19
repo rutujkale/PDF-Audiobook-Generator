@@ -1,134 +1,302 @@
 import os
-
 import ttkbootstrap as ttk
-from tkinter import filedialog
+from ttkbootstrap.constants import *
+from tkinter import filedialog, messagebox
 
 
-class MainWindow:
+class PDFAudioBookGUI:
 
     def __init__(self, root):
+
         self.root = root
-        self.root.configure(padx=30, pady=20)
+        self.root.title("PDF Audiobook Generator")
 
-        self.selected_pdf = None
-        self.filename = ttk.StringVar(value="📄 No PDF Selected")
+        self.root.geometry("1000x700")
+        self.root.minsize(900, 650)
 
-        self.create_header()
-        self.create_file_section()
-        self.create_settings_section()
-        self.create_action_section()
+        self.pdf_path = ""
+        self.output_folder = "output"
 
-    def create_header(self):
-        """Application Title"""
+        self.create_widgets()
+
+    def create_widgets(self):
+
+        # ===========================
+        # Header
+        # ===========================
 
         title = ttk.Label(
             self.root,
             text="📚 PDF Audiobook Generator",
             font=("Segoe UI", 24, "bold")
         )
-        title.pack(pady=(10, 5))
+
+        title.pack(pady=(20, 5))
 
         subtitle = ttk.Label(
             self.root,
             text="Convert any PDF into a natural sounding audiobook",
             font=("Segoe UI", 11)
         )
-        subtitle.pack(pady=(0, 25))
 
-    def create_file_section(self):
-        """PDF Selection Section"""
+        subtitle.pack()
 
-        select_button = ttk.Button(
-            self.root,
-            text="📂 Select PDF",
+        ttk.Separator(self.root).pack(fill="x", padx=20, pady=20)
+
+        # ===========================
+        # Main Frame
+        # ===========================
+
+        main_frame = ttk.Frame(self.root)
+
+        main_frame.pack(fill="both", expand=True, padx=20)
+
+        # ===========================
+        # PDF Section
+        # ===========================
+
+        pdf_frame = ttk.LabelFrame(
+            main_frame,
+            text=" PDF "
+        )
+
+        pdf_frame.pack(fill="x", pady=10)
+
+        self.file_label = ttk.Label(
+            pdf_frame,
+            text="No PDF Selected",
+            width=70
+        )
+
+        self.file_label.pack(
+            side="left",
+            padx=15,
+            pady=15
+        )
+
+        ttk.Button(
+            pdf_frame,
+            text="Browse",
             bootstyle="primary",
             command=self.select_pdf
+        ).pack(
+            side="right",
+            padx=15
         )
-        select_button.pack(pady=10)
 
-        file_label = ttk.Label(
-            self.root,
-            textvariable=self.filename,
-            font=("Segoe UI", 10)
+        # ===========================
+        # Voice Section
+        # ===========================
+
+        voice_frame = ttk.LabelFrame(
+            main_frame,
+            text=" Voice Settings "
         )
-        file_label.pack(pady=(5, 20))
 
-    def create_settings_section(self):
-        """Settings Section"""
+        voice_frame.pack(fill="x", pady=10)
 
-        # Voice Label
-        voice_label = ttk.Label(
-            self.root,
-            text="Voice",
-            font=("Segoe UI", 11, "bold")
+        ttk.Label(
+            voice_frame,
+            text="Voice"
+        ).grid(
+            row=0,
+            column=0,
+            padx=10,
+            pady=15
         )
-        voice_label.pack(anchor="w")
 
-        # Voice Dropdown
-        self.voice_box = ttk.Combobox(
-            self.root,
+        self.voice = ttk.Combobox(
+            voice_frame,
             values=[
-                "en-US-AriaNeural",
                 "en-US-GuyNeural",
-                "en-IN-NeerjaNeural",
-                "en-IN-PrabhatNeural"
+                "en-US-JennyNeural",
+                "en-GB-RyanNeural",
+                "en-GB-SoniaNeural"
             ],
-            state="readonly"
+            width=35
         )
 
-        self.voice_box.current(0)
-        self.voice_box.pack(fill="x", pady=(5, 15))
+        self.voice.current(0)
 
-        # Speed Label
-        speed_label = ttk.Label(
-            self.root,
-            text="Speech Speed",
-            font=("Segoe UI", 11, "bold")
-        )
-        speed_label.pack(anchor="w")
-
-        # Speed Slider
-        self.speed_slider = ttk.Scale(
-            self.root,
-            from_=-50,
-            to=50
-        )
-        self.speed_slider.set(0)
-        self.speed_slider.pack(fill="x", pady=(5, 25))
-
-    def create_action_section(self):
-        """Bottom Buttons"""
-
-        self.generate_button = ttk.Button(
-            self.root,
-            text="🎙 Generate Audiobook",
-            bootstyle="success",
-            state="disabled"
+        self.voice.grid(
+            row=0,
+            column=1,
+            padx=10
         )
 
-        self.generate_button.pack(fill="x", ipady=8)
+        ttk.Label(
+            voice_frame,
+            text="Speed"
+        ).grid(
+            row=0,
+            column=2,
+            padx=10
+        )
+
+        self.speed = ttk.Scale(
+            voice_frame,
+            from_=0.5,
+            to=2.0,
+            orient="horizontal",
+            length=220
+        )
+
+        self.speed.set(1.0)
+
+        self.speed.grid(
+            row=0,
+            column=3,
+            padx=10
+        )
+
+        # ===========================
+        # Output Folder
+        # ===========================
+
+        output_frame = ttk.LabelFrame(
+            main_frame,
+            text=" Output "
+        )
+
+        output_frame.pack(fill="x", pady=10)
+
+        self.output_label = ttk.Label(
+            output_frame,
+            text=self.output_folder,
+            width=70
+        )
+
+        self.output_label.pack(
+            side="left",
+            padx=15,
+            pady=15
+        )
+
+        ttk.Button(
+            output_frame,
+            text="Browse",
+            bootstyle="info",
+            command=self.select_output_folder
+        ).pack(
+            side="right",
+            padx=15
+        )
+
+        # ===========================
+        # Progress
+        # ===========================
+
+        progress_frame = ttk.Frame(main_frame)
+
+        progress_frame.pack(fill="x", pady=20)
 
         self.progress = ttk.Progressbar(
-            self.root,
+            progress_frame,
+            length=700,
             mode="determinate",
-            maximum=100
+            bootstyle="success-striped"
         )
 
-        self.progress.pack(fill="x", pady=20)
+        self.progress.pack()
+
+        # ===========================
+        # Generate Button
+        # ===========================
+
+        self.generate_btn = ttk.Button(
+            main_frame,
+            text="Generate Audiobook",
+            bootstyle="success",
+            width=30,
+            command=self.generate_audio
+        )
+
+        self.generate_btn.pack(pady=20)
+
+        # ===========================
+        # Audio Controls
+        # ===========================
+
+        player = ttk.Frame(main_frame)
+
+        player.pack()
+
+        ttk.Button(
+            player,
+            text="▶ Play",
+            bootstyle="secondary",
+            state="disabled"
+        ).grid(row=0, column=0, padx=10)
+
+        ttk.Button(
+            player,
+            text="⏸ Pause",
+            bootstyle="secondary",
+            state="disabled"
+        ).grid(row=0, column=1, padx=10)
+
+        ttk.Button(
+            player,
+            text="⏹ Stop",
+            bootstyle="secondary",
+            state="disabled"
+        ).grid(row=0, column=2, padx=10)
+
+        # ===========================
+        # Status Bar
+        # ===========================
+
+        self.status = ttk.Label(
+            self.root,
+            text="Ready",
+            anchor="w",
+            bootstyle="inverse-dark"
+        )
+
+        self.status.pack(
+            fill="x",
+            side="bottom"
+        )
+
+    # ====================================
 
     def select_pdf(self):
-        """Open File Dialog"""
 
-        file_path = filedialog.askopenfilename(
-            title="Select PDF",
+        file = filedialog.askopenfilename(
             filetypes=[("PDF Files", "*.pdf")]
         )
 
-        if file_path:
-            self.selected_pdf = file_path
+        if file:
 
-            filename = os.path.basename(file_path)
+            self.pdf_path = file
 
-            self.filename.set(f"📄 {filename}")
+            self.file_label.config(
+                text=os.path.basename(file)
+            )
 
-            self.generate_button.config(state="normal")
+            self.status.config(
+                text="PDF Selected"
+            )
+
+    # ====================================
+
+    def select_output_folder(self):
+
+        folder = filedialog.askdirectory()
+
+        if folder:
+
+            self.output_folder = folder
+
+            self.output_label.config(
+                text=folder
+            )
+
+    # ====================================
+
+    def generate_audio(self):
+
+        messagebox.showinfo(
+            "Coming Soon",
+            "Backend will be connected in the next step."
+        )
