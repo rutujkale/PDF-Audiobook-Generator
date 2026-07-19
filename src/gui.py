@@ -2,7 +2,7 @@ import os
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import filedialog, messagebox
-
+from src.pdf_reader import PDFReader
 
 class PDFAudioBookGUI:
 
@@ -296,7 +296,50 @@ class PDFAudioBookGUI:
 
     def generate_audio(self):
 
-        messagebox.showinfo(
-            "Coming Soon",
-            "Backend will be connected in the next step."
-        )
+        if self.pdf_path == "":
+
+            messagebox.showwarning(
+                "No PDF",
+                "Please choose a PDF first."
+            )
+
+            return
+
+        try:
+
+            reader = PDFReader(self.pdf_path)
+
+            reader.open()
+
+            info = reader.extract_info()
+
+            text = reader.extract_text()
+
+            reader.close()
+
+            self.progress["value"] = 100
+
+            self.status.config(
+                text="PDF Loaded Successfully"
+            )
+
+            messagebox.showinfo(
+
+                "PDF Information",
+
+                f"Title : {info['title']}\n\n"
+
+                f"Author : {info['author']}\n\n"
+
+                f"Pages : {info['pages']}\n\n"
+
+                f"Characters : {len(text)}"
+
+            )
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Error",
+                str(e)
+            )

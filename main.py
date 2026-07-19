@@ -1,13 +1,13 @@
-from tkinter import Tk
+import ttkbootstrap as ttk
 
 from src.gui import PDFAudioBookGUI
 
 
 def main():
 
-    root = Tk()
+    root = ttk.Window(themename="darkly")
 
-    app = PDFAudioBookGUI(root)
+    PDFAudioBookGUI(root)
 
     root.mainloop()
 

@@ -3,31 +3,57 @@ import fitz
 
 class PDFReader:
 
-    @staticmethod
-    def extract_text(pdf_path):
+    def __init__(self, pdf_path):
 
-        try:
+        self.pdf_path = pdf_path
 
-            document = fitz.open(pdf_path)
+        self.document = None
 
-            text = ""
+    def open(self):
 
-            for page in document:
+        self.document = fitz.open(self.pdf_path)
 
-                text += page.get_text()
+    def close(self):
 
-            document.close()
+        if self.document:
 
-            if text.strip() == "":
+            self.document.close()
 
-                raise Exception(
-                    "No readable text found inside this PDF."
-                )
+    def page_count(self):
 
-            return text
+        if not self.document:
 
-        except Exception as e:
+            self.open()
 
-            raise Exception(
-                f"Unable to read PDF.\n{e}"
-            )
+        return len(self.document)
+
+    def extract_text(self):
+
+        if not self.document:
+
+            self.open()
+
+        text = ""
+
+        for page in self.document:
+
+            text += page.get_text("text")
+
+        return text.strip()
+
+    def extract_info(self):
+
+        if not self.document:
+
+            self.open()
+
+        metadata = self.document.metadata
+
+        return {
+
+            "title": metadata.get("title", "Unknown"),
+
+            "author": metadata.get("author", "Unknown"),
+
+            "pages": len(self.document)
+        }
