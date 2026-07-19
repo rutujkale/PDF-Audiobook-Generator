@@ -3,6 +3,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import filedialog, messagebox
 from src.pdf_reader import PDFReader
+from src.tts import TextToSpeech
 
 class PDFAudioBookGUI:
 
@@ -299,47 +300,83 @@ class PDFAudioBookGUI:
         if self.pdf_path == "":
 
             messagebox.showwarning(
+
                 "No PDF",
+
                 "Please choose a PDF first."
+
             )
 
             return
 
         try:
 
+            self.status.config(text="Reading PDF...")
+
+            self.progress["value"] = 10
+
+            self.root.update()
+
             reader = PDFReader(self.pdf_path)
 
             reader.open()
-
-            info = reader.extract_info()
 
             text = reader.extract_text()
 
             reader.close()
 
+            self.progress["value"] = 40
+
+            self.status.config(
+
+                text="Generating Audio..."
+
+            )
+
+            self.root.update()
+
+            tts = TextToSpeech()
+
+            files = tts.create_audio(
+
+                text=text,
+
+                voice=self.voice.get(),
+
+                speed=float(self.speed.get()),
+
+                output_folder=self.output_folder
+
+            )
+
             self.progress["value"] = 100
 
             self.status.config(
-                text="PDF Loaded Successfully"
+
+                text="Completed"
+
             )
 
             messagebox.showinfo(
 
-                "PDF Information",
+                "Success",
 
-                f"Title : {info['title']}\n\n"
-
-                f"Author : {info['author']}\n\n"
-
-                f"Pages : {info['pages']}\n\n"
-
-                f"Characters : {len(text)}"
+                f"Generated {len(files)} audio file(s)."
 
             )
 
         except Exception as e:
 
             messagebox.showerror(
+
                 "Error",
+
                 str(e)
+
+            )
+
+            self.status.config(
+
+                text="Failed"
+
             )
